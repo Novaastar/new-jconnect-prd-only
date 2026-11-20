@@ -21,8 +21,8 @@ Alternatif: buka `index.html` langsung di browser. Aplikasi tidak memerlukan ins
 2. Pilih bank, masukkan nomor rekening 8–20 digit (contoh `1234567890`), tekan **Cek penerima**, lalu masukkan nominal minimal Rp10.000.
 3. Bandingkan BI-FAST, Online, dan RTGS; biaya, waktu, ketentuan, dan batas pada prototipe adalah data contoh.
 4. Periksa ringkasan penerima, nominal, biaya, metode, dan total debit. Pada halaman konfirmasi, pilih skenario **Berhasil**, **Diproses**, atau **Gagal** untuk mencoba tampilan status.
-5. Buka **Riwayat** untuk melihat status dan nomor referensi demo. Pada status diproses, aplikasi mengarahkan pengguna agar tidak mengulang transfer.
+5. Buka **Riwayat** untuk melihat status dan nomor referensi demo. Pada status diproses, aplikasi mengarahkan pengguna agar tidak mengulang transfer. Pada simulasi, status diproses akan diperbarui menjadi berhasil setelah 30 detik.
 
 ## Cakupan prototipe
 
-Antarmuka mencakup halaman beranda, verifikasi tujuan simulasi, perbandingan metode, konfirmasi dan koreksi tujuan, peringatan transfer serupa yang masih diproses, hasil tiga status transaksi, riwayat, indikator koneksi, dan bantuan kontekstual. Data transaksi hanya tersimpan selama halaman terbuka; memuat ulang halaman akan mengembalikan data demo awal.
+Antarmuka mencakup halaman beranda, verifikasi tujuan simulasi, perbandingan metode, konfirmasi dan koreksi tujuan, peringatan transfer serupa yang masih diproses, hasil tiga status transaksi, riwayat, penyalinan nomor referensi, indikator koneksi, dan bantuan kontekstual. Data riwayat demo disimpan pada penyimpanan browser dan tetap tersedia setelah halaman dimuat ulang.

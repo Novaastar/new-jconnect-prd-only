@@ -79,6 +79,33 @@ const state = {
   ],
 };
 
+const STORAGE_KEY = "new-jconnect-transfer-demo-v1";
+
+function loadPersistedState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!saved || !Array.isArray(saved.transactions)) return;
+    state.transactions = saved.transactions.map((transaction) => ({
+      ...transaction,
+      date: new Date(transaction.date),
+    })).filter((transaction) => !Number.isNaN(transaction.date.getTime()));
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
+
+function persistState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      transactions: state.transactions,
+    }));
+  } catch {
+    // The app remains usable in-memory when browser storage is unavailable.
+  }
+}
+
+loadPersistedState();
+
 const bankShort = (bank) => {
   const match = bank.match(/\(([^)]+)\)/);
   if (match) return match[1];
@@ -108,6 +135,35 @@ const activeMethod = () => methods.find((method) => method.id === state.method);
 const activeTransaction = () => state.transactions.find((item) => item.id === state.activeTransactionId);
 const totalDebit = () => Number(state.amount || 0) + activeMethod().fee;
 const maskAccount = (account) => `•••• ${account.slice(-4)}`;
+
+function recipientNameForAccount(account) {
+  const recipientDirectory = {
+    "1234567890": "Dimas Pratama",
+    "9988776655": "Nadia Putri",
+  };
+  return recipientDirectory[account] || "Penerima Demo";
+}
+
+function setFieldError(input, message) {
+  if (!input) return;
+  let error = input.closest(".field")?.querySelector(".field-error");
+  if (!error) {
+    error = document.createElement("p");
+    error.className = "field-error";
+    input.closest(".field")?.appendChild(error);
+  }
+  error.textContent = message;
+  input.setAttribute("aria-invalid", "true");
+  input.closest(".field")?.classList.add("has-error");
+  input.focus();
+}
+
+function clearFieldError(input) {
+  if (!input) return;
+  input.removeAttribute("aria-invalid");
+  input.closest(".field")?.classList.remove("has-error");
+  input.closest(".field")?.querySelector(".field-error")?.remove();
+}
 
 function showToast(message) {
   toast.textContent = message;
@@ -249,7 +305,7 @@ function statusLabel(status) {
 
 function statusAdvice(status) {
   if (status === "pending") {
-    return `<div class="info-banner warning"><span class="info-icon">!</span><div><strong>Tidak perlu mengulang transfer</strong>Dana mungkin sudah didebit. Tunggu pembaruan status dan periksa riwayat transaksi secara berkala.</div></div>`;
+    return `<div class="info-banner warning"><span class="info-icon">!</span><div><strong>Tidak perlu mengulang transfer</strong>Dana mungkin sudah didebit. Status akan diperbarui secara otomatis pada simulasi ini. Periksa riwayat atau tunggu pembaruan.</div></div>`;
   }
   if (status === "failed") {
     return `<div class="info-banner error"><span class="info-icon">!</span><div><strong>Periksa rekening sebelum mencoba lagi</strong>Transfer ini tidak berhasil. Periksa riwayat dan saldo terlebih dahulu. Jika saldo sudah berkurang, jangan ulangi—hubungi Customer Service.</div></div>`;
@@ -288,6 +344,7 @@ function renderResult() {
     <div class="result-advice">${statusAdvice(transaction.status)}</div>
     <div class="result-actions">
       <button class="button button-secondary" type="button" data-action="history">Lihat riwayat</button>
+      <button class="button button-secondary" type="button" data-action="copy-reference" data-reference="${escapeHtml(transaction.id)}">Salin nomor referensi</button>
       <button class="button button-primary" type="button" data-action="${transaction.status === "success" ? "start-transfer" : "help"}">${transaction.status === "success" ? "Transfer lagi" : "Hubungi bantuan"}</button>
     </div>
     <p class="result-note">Status mengikuti data transaksi terbaru yang tersedia di prototipe ini. Periksa riwayat untuk melihat rujukan transaksi.</p>
@@ -363,13 +420,15 @@ function verifyRecipient() {
   const accountInput = document.querySelector("#account");
   const account = accountInput?.value.trim() || "";
   if (!/^\d{8,20}$/.test(account)) {
-    showToast("Masukkan nomor rekening 8–20 digit.");
-    accountInput?.focus();
+    setFieldError(accountInput, "Masukkan nomor rekening 8–20 digit.");
     return false;
   }
+  clearFieldError(accountInput);
+  const amountInput = document.querySelector("#amount");
   state.account = account;
   state.bank = document.querySelector("#bank").value;
-  state.recipient = "Penerima Demo";
+  state.recipient = recipientNameForAccount(account);
+  if (amountInput?.value) state.amount = amountInput.value;
   state.verified = true;
   render();
   showToast("Nama dan bank penerima berhasil diperiksa.");
@@ -382,20 +441,20 @@ function validateRecipientForm() {
   const account = accountInput.value.trim();
   const amount = Number(amountInput.value);
   if (!state.verified || state.account !== account || state.bank !== document.querySelector("#bank").value) {
-    showToast("Cek penerima terlebih dahulu untuk memastikan tujuan transfer.");
-    accountInput.focus();
+    setFieldError(accountInput, "Cek penerima terlebih dahulu untuk memastikan tujuan transfer.");
     return false;
   }
+  clearFieldError(accountInput);
   if (!/^\d{8,20}$/.test(account)) {
-    showToast("Nomor rekening harus terdiri dari 8–20 digit.");
-    accountInput.focus();
+    setFieldError(accountInput, "Nomor rekening harus terdiri dari 8–20 digit.");
     return false;
   }
+  clearFieldError(accountInput);
   if (!Number.isInteger(amount) || amount < 10000) {
-    showToast("Nominal minimum transfer adalah Rp10.000.");
-    amountInput.focus();
+    setFieldError(amountInput, "Nominal minimum transfer adalah Rp10.000.");
     return false;
   }
+  clearFieldError(amountInput);
   state.account = account;
   state.amount = String(amount);
   return true;
@@ -435,9 +494,13 @@ function submitTransfer(button) {
     method: activeMethod().name,
     status: state.scenario,
     date: new Date(),
+    demoAutoResolveAt: state.scenario === "pending"
+      ? Date.now() + 30000
+      : null,
   };
   state.transactions.unshift(transaction);
   state.activeTransactionId = transaction.id;
+  persistState();
   window.setTimeout(() => {
     state.screen = "result";
     render();
@@ -506,7 +569,16 @@ app.addEventListener("click", (event) => {
       submitTransfer(actionTarget);
       break;
     case "contact-support":
-      showToast("Customer Service demo: hubungi kanal resmi Bank Jatim.");
+      state.screen = "help";
+      render();
+      showToast("Gunakan kanal Customer Service resmi Bank Jatim yang tertera pada aplikasi resminya.");
+      break;
+    case "copy-reference":
+      navigator.clipboard?.writeText(actionTarget.dataset.reference).then(
+        () => showToast("Nomor referensi berhasil disalin."),
+        () => showToast(`Nomor referensi: ${actionTarget.dataset.reference}`)
+      );
+      if (!navigator.clipboard) showToast(`Nomor referensi: ${actionTarget.dataset.reference}`);
       break;
   }
 });
@@ -552,5 +624,26 @@ window.addEventListener("offline", () => {
     showToast("Koneksi terputus. Periksa jaringan dan jangan ulangi transaksi yang sedang dikirim.");
   }
 });
+
+window.setInterval(() => {
+  const now = Date.now();
+  let changed = false;
+  state.transactions.forEach((transaction) => {
+    if (
+      transaction.status === "pending" &&
+      transaction.demoAutoResolveAt &&
+      Number(transaction.demoAutoResolveAt) <= now
+    ) {
+      transaction.status = "success";
+      transaction.demoAutoResolveAt = null;
+      changed = true;
+    }
+  });
+  if (!changed) return;
+  persistState();
+  showToast("Status transfer terbaru: berhasil.");
+  if (state.screen === "result") render();
+  if (state.screen === "history") render();
+}, 1000);
 
 render();

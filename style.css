@@ -159,6 +159,8 @@ h3 { margin-bottom: 8px; font-size: 15px; }
 }
 .field input:focus, .field select:focus { border-color: #54a78a; box-shadow: 0 0 0 3px rgba(7,128,91,.09); }
 .field input::placeholder { color: #a6b0aa; }
+.field-error { margin: -2px 0 0; color: #bd4d47; font-size: 11px; line-height: 1.45; }
+.field.has-error input { border-color: #d98982; box-shadow: 0 0 0 3px rgba(214,91,85,.08); }
 .field-hint { margin: -2px 0 0; color: #89958e; font-size: 11px; }
 .input-with-button { display: flex; gap: 8px; }
 .input-with-button input { min-width: 0; }
@@ -231,7 +233,7 @@ h3 { margin-bottom: 8px; font-size: 15px; }
 .reference-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 13px 0 0; color: var(--muted); font-size: 11px; }
 .reference-row strong { color: #35453d; font-size: 11px; letter-spacing: .2px; }
 .result-advice { margin-top: 15px; text-align: left; }
-.result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 17px; }
+.result-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 17px; }
 .result-actions .button { width: 100%; }
 .result-note { margin: 15px 0 0; color: #7b8881; font-size: 10px; line-height: 1.6; }
 
