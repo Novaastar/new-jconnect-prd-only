@@ -150,6 +150,7 @@ function setFieldError(input, message) {
   if (!error) {
     error = document.createElement("p");
     error.className = "field-error";
+    error.setAttribute("role", "alert");
     input.closest(".field")?.appendChild(error);
   }
   error.textContent = message;
@@ -260,6 +261,7 @@ function renderMethods() {
 function hasPendingDuplicate() {
   return state.transactions.some((item) =>
     item.status === "pending" &&
+    item.bank === state.bank &&
     item.account === maskAccount(state.account) &&
     item.amount === Number(state.amount)
   );
@@ -440,6 +442,11 @@ function validateRecipientForm() {
   const amountInput = document.querySelector("#amount");
   const account = accountInput.value.trim();
   const amount = Number(amountInput.value);
+  if (!account) {
+    setFieldError(accountInput, "Nomor rekening wajib diisi.");
+    return false;
+  }
+  clearFieldError(accountInput);
   if (!state.verified || state.account !== account || state.bank !== document.querySelector("#bank").value) {
     setFieldError(accountInput, "Cek penerima terlebih dahulu untuk memastikan tujuan transfer.");
     return false;
@@ -597,11 +604,15 @@ app.addEventListener("change", (event) => {
   if (event.target.id === "bank") {
     state.bank = event.target.value;
     state.verified = false;
+    document.querySelector(".verified-recipient")?.remove();
   }
 });
 
 app.addEventListener("input", (event) => {
-  if (event.target.id === "account" && event.target.value.trim() !== state.account) state.verified = false;
+  if (event.target.id === "account" && event.target.value.trim() !== state.account) {
+    state.verified = false;
+    document.querySelector(".verified-recipient")?.remove();
+  }
 });
 
 document.querySelectorAll(".nav-item").forEach((item) => {
