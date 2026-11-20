@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f7f5" />
+    <meta
+      name="description"
+      content="Prototipe alur transfer antarbank New JConnect Mobile."
+    />
+    <title>New JConnect — Transfer Antarbank</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand" type="button" data-action="home" aria-label="Beranda">
+          <span class="brand-mark" aria-hidden="true">J</span>
+          <span class="brand-copy">
+            <strong>jconnect</strong>
+            <small>mobile banking</small>
+          </span>
+        </button>
+        <div class="topbar-actions">
+          <span class="demo-label"><span></span> DEMO</span>
+          <button class="avatar" type="button" aria-label="Profil">R</button>
+        </div>
+      </header>
+
+      <main id="app" class="main-content" aria-live="polite"></main>
+
+      <nav class="bottom-nav" aria-label="Navigasi utama">
+        <button class="nav-item is-active" type="button" data-action="home">
+          <span class="nav-icon" aria-hidden="true">⌂</span>
+          <span>Beranda</span>
+        </button>
+        <button class="nav-item" type="button" data-action="history">
+          <span class="nav-icon" aria-hidden="true">◷</span>
+          <span>Riwayat</span>
+        </button>
+        <button class="nav-item" type="button" data-action="help">
+          <span class="nav-icon" aria-hidden="true">?</span>
+          <span>Bantuan</span>
+        </button>
+      </nav>
+    </div>
+    <div id="toast" class="toast" role="status"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
